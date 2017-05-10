@@ -1,9 +1,9 @@
 package main
 
 import (
-	"esc"
 	"fmt"
 	"github.com/patrickmn/go-cache"
+	"github.com/projesc/esc"
 	"github.com/yuin/gopher-lua"
 	"log"
 	"strings"
@@ -66,7 +66,7 @@ func syncKv(msg *esc.Message) {
 	}
 }
 
-func Start() {
+func Start(_ *esc.EscConfig) {
 	kv = cache.New(6*time.Hour, 1*time.Hour)
 	esc.OnCommand("*", "ping", pingCmd)
 	esc.OnEvent("*", "ping", pingEvt)
