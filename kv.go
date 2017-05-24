@@ -36,15 +36,7 @@ func Get(key string) string {
 
 func Set(key string, value string) {
 	kv.Set(key, value, cache.NoExpiration)
-	esc.SendEvent("set", fmt.Sprintf("%s,%s", key, value))
-}
-
-func pingCmd(message *esc.Message) {
-	esc.SendEvent("ping", "ping")
-}
-
-func pingEvt(message *esc.Message) {
-	log.Printf("Ping from %s\n", message.From)
+	esc.Send("*", "set", fmt.Sprintf("%s,%s", key, value))
 }
 
 func setEvt(msg *esc.Message) {
@@ -62,16 +54,14 @@ func syncKv(msg *esc.Message) {
 		return
 	}
 	for k, v := range kv.Items() {
-		esc.SendEvent("set", fmt.Sprintf("%s,%s", k, v.Object.(string)))
+		esc.Send("*", "set", fmt.Sprintf("%s,%s", k, v.Object.(string)))
 	}
 }
 
 func Start(_ *esc.EscConfig) {
 	kv = cache.New(6*time.Hour, 1*time.Hour)
-	esc.OnCommand("*", "ping", pingCmd)
-	esc.OnEvent("*", "ping", pingEvt)
-	esc.OnEvent("*", "set", setEvt)
-	esc.OnEvent(esc.Self(), "connected", syncKv)
+	esc.On("*", "set", setEvt)
+	esc.On(esc.Self(), "connected", syncKv)
 }
 
 func Script(script *esc.Script) {
